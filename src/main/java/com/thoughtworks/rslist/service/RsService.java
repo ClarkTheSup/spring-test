@@ -10,7 +10,6 @@ import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -59,9 +58,14 @@ public class RsService {
     if (rsEventDto == null) {
       throw new RuntimeException();
     }
-    TradeDto tradeDto = TradeDto.builder()
-            .amount(trade.getAmount()).ranking(trade.getRank())
-            .rs_event_tdo(rsEventDto).build();
-    tradeRepository.save(tradeDto);
+    TradeDto tradeDtoFound = tradeRepository.findTradeDtoByRanking(trade.getRank()).orElse(null);
+    if (tradeDtoFound == null) {
+      TradeDto tradeDto = TradeDto.builder()
+              .amount(trade.getAmount()).ranking(trade.getRank())
+              .rs_event_tdo(rsEventDto).build();
+      tradeRepository.save(tradeDto);
+    } else if (trade.getAmount() <= tradeDtoFound.getAmount()){
+      throw new RuntimeException();
+    }
   }
 }

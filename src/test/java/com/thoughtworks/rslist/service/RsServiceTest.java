@@ -1,6 +1,7 @@
 package com.thoughtworks.rslist.service;
 
 import com.thoughtworks.rslist.domain.Trade;
+import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.domain.Vote;
 import com.thoughtworks.rslist.dto.RsEventDto;
 import com.thoughtworks.rslist.dto.TradeDto;
@@ -10,9 +11,11 @@ import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.test.annotation.Rollback;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -35,11 +38,35 @@ class RsServiceTest {
   Vote vote;
 
   @BeforeEach
-  void setUp() {
+  public void setUp() {
     initMocks(this);
     rsService = new RsService(rsEventRepository, userRepository, voteRepository, tradeRepository);
     localDateTime = LocalDateTime.now();
     vote = Vote.builder().voteNum(2).rsEventId(1).time(localDateTime).userId(1).build();
+//    UserDto userDto1 = UserDto.builder().userName("clark").gender("f")
+//            .age(19).email("lkn@163.com").phone("11111111111").id(1).build();
+//    UserDto userDto2 = UserDto.builder().userName("jim").gender("f")
+//            .age(19).email("lkn@163.com").phone("11111111111").id(2).build();
+//    RsEventDto rsEventDto1 = RsEventDto.builder().eventName("event name1").id(1).keyword("keyword")
+//            .voteNum(2).user(userDto1).build();
+//    RsEventDto rsEventDto2 = RsEventDto.builder().eventName("event name2").id(2).keyword("keyword")
+//            .voteNum(5).user(userDto1).build();
+//    RsEventDto rsEventDto3 = RsEventDto.builder().eventName("event name3").id(3).keyword("keyword")
+//            .voteNum(8).user(userDto2).build();
+//    VoteDto voteDto1 = VoteDto.builder().num(4).id(1).localDateTime(localDateTime)
+//            .rsEvent(rsEventDto1).build();
+//    TradeDto tradeDto1 = TradeDto.builder().amount(100).ranking(1).id(1)
+//            .rs_event_tdo(rsEventDto1).build();
+//    TradeDto tradeDto2 = TradeDto.builder().amount(200).ranking(2).id(2)
+//            .rs_event_tdo(rsEventDto2).build();
+//    userRepository.save(userDto1);
+//    userRepository.save(userDto2);
+//    rsEventRepository.save(rsEventDto1);
+//    rsEventRepository.save(rsEventDto2);
+//    rsEventRepository.save(rsEventDto3);
+//    voteRepository.save(voteDto1);
+//    tradeRepository.save(tradeDto1);
+//    tradeRepository.save(tradeDto2);
   }
 
   @Test
@@ -115,5 +142,29 @@ class RsServiceTest {
     rsService.buy(trade, rsEventDto.getId());
 
     verify(tradeRepository).save(tradeDto);
+  }
+
+  @Test
+  public void when_buy_rs_and_ranking_bought_and_amount_insufficient_then_runtime_exception() {
+    UserDto userDto = UserDto.builder().voteNum(5).phone("18888888888").gender("female")
+            .email("a@b.com").age(19).userName("xiaoli").id(2).build();
+    RsEventDto rsEventDto = RsEventDto.builder().eventName("event name").id(1)
+            .keyword("keyword").voteNum(2).user(userDto).build();
+    TradeDto tradeDto = TradeDto.builder().amount(200).ranking(1)
+            .rs_event_tdo(rsEventDto).build();
+    TradeDto tradeDto2 = TradeDto.builder().amount(100).ranking(1)
+            .rs_event_tdo(rsEventDto).build();
+    when(userRepository.findById(anyInt())).thenReturn(Optional.of(userDto));
+    when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
+    when(tradeRepository.findTradeDtoByRanking(anyInt())).thenReturn(Optional.of(tradeDto));
+
+
+    Trade trade = Trade.builder().amount(100)
+            .rank(1).build();
+    assertThrows(
+            RuntimeException.class,
+            () -> {
+              rsService.buy(trade, rsEventDto.getId());
+            });
   }
 }

@@ -114,10 +114,10 @@ class RsServiceTest {
     when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
     when(tradeRepository.findById(anyInt())).thenReturn(Optional.of(tradeDto));
 
-    Trade trade = Trade.builder().amount(tradeDto.getAmount()).rsEventId(1)
+    Trade trade = Trade.builder().amount(tradeDto.getAmount())
             .ranking(tradeDto.getRanking()).build();
 
-    rsService.buy(trade);
+    rsService.buy(trade, rsEventDto.getId());
 
     verify(tradeRepository).save(tradeDto);
   }
@@ -134,11 +134,11 @@ class RsServiceTest {
     when(tradeRepository.findTradeDtoByRanking(anyInt())).thenReturn(Optional.of(tradeDto));
 
     Trade trade = Trade.builder().amount(100)
-            .ranking(1).rsEventId(1).build();
+            .ranking(1).build();
     assertThrows(
             RuntimeException.class,
             () -> {
-              rsService.buy(trade);
+              rsService.buy(trade, rsEventDto.getId());
             });
   }
 
@@ -153,11 +153,11 @@ class RsServiceTest {
     when(rsEventRepository.findById(anyInt())).thenReturn(Optional.of(rsEventDto));
     when(tradeRepository.findTradeDtoByRanking(anyInt())).thenReturn(Optional.of(tradeDtoOld));
 
-    Trade tradeNew = Trade.builder().amount(300).ranking(1).rsEventId(1).build();
+    Trade tradeNew = Trade.builder().amount(300).ranking(1).build();
     TradeDto tradeDtoNew = TradeDto.builder()
             .amount(tradeNew.getAmount()).ranking(tradeNew.getRanking())
             .rs_event_tdo(rsEventDto).build();
-    rsService.buy(tradeNew);
+    rsService.buy(tradeNew, rsEventDto.getId());
 
     verify(rsEventRepository).delete(tradeDtoOld.getRs_event_tdo());
     verify(rsEventRepository).save(tradeDtoNew.getRs_event_tdo());
@@ -183,6 +183,5 @@ class RsServiceTest {
     Assertions.assertEquals("rrr", list.get(2).getEventName());
     Assertions.assertEquals("ttt", list.get(3).getEventName());
     Assertions.assertEquals("qqq", list.get(4).getEventName());
-
   }
 }

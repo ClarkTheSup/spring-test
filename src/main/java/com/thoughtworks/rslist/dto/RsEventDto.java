@@ -19,6 +19,6 @@ public class RsEventDto {
   private String keyword;
   private int voteNum;
   @ManyToOne private UserDto user;
-  @OneToOne
+  @OneToOne(mappedBy = "rs_event_tdo")
   private TradeDto trade_dto;
 }

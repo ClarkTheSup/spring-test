@@ -60,8 +60,8 @@ public class RsService {
   }
 
   @Transactional
-  public void buy(Trade trade) {
-    RsEventDto rsEventDto = rsEventRepository.findById(trade.getRsEventId()).orElse(null);
+  public void buy(Trade trade, int rsEventId) {
+    RsEventDto rsEventDto = rsEventRepository.findById(rsEventId).orElse(null);
     if (rsEventDto == null) {
       throw new RuntimeException();
     }
@@ -74,6 +74,7 @@ public class RsService {
       throw new RuntimeException();
     } else {
       rsEventRepository.delete(tradeDtoFound.getRs_event_tdo());
+      tradeRepository.delete(tradeDtoFound);
       rsEventRepository.save(rsEventDto);
       tradeRepository.save(tradeDtoInput);
     }

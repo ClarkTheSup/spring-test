@@ -12,6 +12,7 @@ import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -53,19 +54,24 @@ public class RsService {
     rsEventRepository.save(rsEvent);
   }
 
-  public void buy(Trade trade, int id) {
-    RsEventDto rsEventDto = rsEventRepository.findById(id).orElse(null);
+  @Transactional
+  public void buy(Trade trade) {
+    RsEventDto rsEventDto = rsEventRepository.findById(trade.getRsEventId()).orElse(null);
     if (rsEventDto == null) {
       throw new RuntimeException();
     }
-    TradeDto tradeDtoFound = tradeRepository.findTradeDtoByRanking(trade.getRank()).orElse(null);
+    TradeDto tradeDtoFound = tradeRepository.findTradeDtoByRanking(trade.getRanking()).orElse(null);
+    TradeDto tradeDtoInput = TradeDto.builder().amount(trade.getAmount()).ranking(trade.getRanking())
+            .rs_event_tdo(rsEventDto).build();
     if (tradeDtoFound == null) {
-      TradeDto tradeDto = TradeDto.builder()
-              .amount(trade.getAmount()).ranking(trade.getRank())
-              .rs_event_tdo(rsEventDto).build();
-      tradeRepository.save(tradeDto);
+      tradeRepository.save(tradeDtoInput);
     } else if (trade.getAmount() <= tradeDtoFound.getAmount()){
       throw new RuntimeException();
+    } else {
+      rsEventRepository.delete(tradeDtoFound.getRs_event_tdo());
+      rsEventRepository.save(rsEventDto);
+      tradeRepository.save(tradeDtoInput);
     }
   }
+
 }

@@ -1,5 +1,6 @@
 package com.thoughtworks.rslist.service;
 
+import com.thoughtworks.rslist.domain.RsEvent;
 import com.thoughtworks.rslist.domain.Trade;
 import com.thoughtworks.rslist.domain.User;
 import com.thoughtworks.rslist.domain.Vote;
@@ -20,6 +21,8 @@ import org.springframework.test.annotation.Rollback;
 import sun.security.internal.spec.TlsRsaPremasterSecretParameterSpec;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -163,6 +166,23 @@ class RsServiceTest {
 
   @Test
   public void should_sort_rs_list_by_vote_num_and_trade_ranking() {
+    RsEvent rsEvent1 = RsEvent.builder().eventName("ttt").keyword("ttt").voteNum(5).build();
+    RsEvent rsEvent2 = RsEvent.builder().eventName("qqq").keyword("qqq").voteNum(2).build();
+    RsEvent rsEvent3 = RsEvent.builder().eventName("eee").keyword("eee").voteNum(3).ranking(1).build();
+    RsEvent rsEvent4 = RsEvent.builder().eventName("rrr").keyword("rrr").voteNum(9).ranking(3).build();
+    RsEvent rsEvent5 = RsEvent.builder().eventName("yyy").keyword("yyy").voteNum(8).build();
+    List<RsEvent> list = new ArrayList<RsEvent>();
+    list.add(rsEvent1);
+    list.add(rsEvent2);
+    list.add(rsEvent3);
+    list.add(rsEvent4);
+    list.add(rsEvent5);
+    list = rsService.sort(list);
+    Assertions.assertEquals("eee", list.get(0).getEventName());
+    Assertions.assertEquals("yyy", list.get(1).getEventName());
+    Assertions.assertEquals("rrr", list.get(2).getEventName());
+    Assertions.assertEquals("ttt", list.get(3).getEventName());
+    Assertions.assertEquals("qqq", list.get(4).getEventName());
 
   }
 }

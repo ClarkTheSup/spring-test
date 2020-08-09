@@ -11,6 +11,7 @@ import com.thoughtworks.rslist.repository.RsEventRepository;
 import com.thoughtworks.rslist.repository.TradeRepository;
 import com.thoughtworks.rslist.repository.UserRepository;
 import com.thoughtworks.rslist.repository.VoteRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -209,5 +210,10 @@ class RsControllerTest {
     mockMvc.perform(post("/rs/buy/2").contentType(MediaType.APPLICATION_JSON)
            .content(tradeJson))
            .andExpect(status().isOk());
+
+    List<TradeDto> tradeDtoList = tradeRepository.findAll();
+    Assertions.assertEquals(tradeDtoList.size(), 1);
+    Assertions.assertEquals(tradeDtoList.get(0).getAmount(), 150);
+    Assertions.assertEquals(tradeDtoList.get(0).getRanking(), 2);
   }
 }
